@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script>
+      const init = tf.initializers.constant({ value: 7 });
+      console.log(init);
+      tf.zeros([4, 2]).print(true);
+      tf.scalar(3.14).print(1);
+    </script>
+  </head>
+  <body></body>
+</html>
