@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script>
+      const model = tf.sequential(); // 순차적 API 모델 / 레이어를 만들기 위해
+      model.add(tf.layers.dense({ units: 1, inputShape: [2] })); // 레이어 생성 및 추가, inputShape : input 모양 , units: 다음 경로로 전달될 내용의 갯수
+
+      model.compile({ loss: "meanSquaredError", optimizer: "adam" });
+      // loss 함수와 optimizer, 경험적 선택
+
+      const xs = tf.tensor2d(
+        // 데이터를 tensor로 변환
+        [
+          [0, 0],
+          [0, 1],
+          [1, 0],
+          [1, 1],
+        ],
+        [4, 2]
+      );
+      const ys = tf.tensor2d([0, 1, 1, 0], [4, 1]);
+
+      const firparm = {
+        batchSize: 32,
+        epochs: 2000,
+        callbacks: {
+          onEpochEnd: (epoch, logs) => {
+            console.log("epoch", epoch, logs, "RMSE=>", Math.sqrt(logs.loss));
+          },
+        },
+      };
+      model.fit(xs, ys, firparm).then(() => {
+        // 모델을 fit하기
+        model.predict(tf.tensor2d([[0, 1]], [1, 2])).print();
+      });
+    </script>
+  </head>
+  <body></body>
+</html>

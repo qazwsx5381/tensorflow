@@ -31,6 +31,10 @@ const t1 = tf.tensor1d([1, 2, 3]);
 t1.print();
 console.log(tf.memory());
 
+const t2 = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+t2.print();
+console.log(tf.memory());
+
 app.listen(PORT, () => {
   console.log("포트가 열렸습니다.");
 });
