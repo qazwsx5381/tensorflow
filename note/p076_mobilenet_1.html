@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+  </head>
+  <body>
+    <h1>이미지 분류 with Mobilenet</h1>
+    <form action="/trans"></form>
+    <p id="predictions">...인식중</p>
+    <form action="#">
+      <input type="file" id="img" />
+      <button type="submit">업로드</button>
+    </form>
+    <div id="show"></div>
+
+    <script>
+      document.querySelector("form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const img = event.target[0].files[0];
+        let container = document.getElementById("show");
+        container.innerHTML = ''
+        //새로운 이미지를 div 추가
+        let newImage = document.createElement("img");
+        newImage.setAttribute("class", "img");
+
+        //이미지 source 가져오기
+        newImage.src = URL.createObjectURL(img);
+        newImage.id = "showimg";
+        newImage.style.width = "500px";
+        newImage.style.objectFit = "contain";
+
+        //이미지를 image-show div에 추가
+        container.appendChild(newImage);
+        const showimg = document.getElementById("showimg");
+        mobilenet.load().then((model) => {
+          model.classify(showimg).then((predictions) => {
+            const preds = document.getElementById("predictions");
+            //   preds.innerHTML = predictions;
+            console.log(predictions);
+            preds.innerHTML = predictions
+              .map((p) => {
+                return (
+                  p["className"] +
+                  " " +
+                  (p["probability"] * 100).toFixed(2) +
+                  "%"
+                );
+              })
+              .join("<br>");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
