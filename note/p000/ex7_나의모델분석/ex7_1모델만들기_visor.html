@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+  </head>
+  <body>
+    <script>
+      const temp = [24, 26, 28, 30]; // y = ax+b
+      const sell = [130, 140, 150, 160]; // y = 5x+10
+      const tftemp = tf.tensor1d(temp);
+      const tfsell = tf.tensor1d(sell);
+
+      const x = tf.input({ shape: [1] });
+      const y = tf.layers.dense({ units: 8, activation: "relu" }).apply(x);
+      const z = tf.layers.dense({ units: 1 }).apply(y);
+      const model = tf.model({ inputs: x, outputs: z });
+      const param = {
+        optimizer: tf.train.adam(),
+        loss: tf.losses.meanSquaredError,
+      };
+      model.compile(param);
+
+      const surface = { name: "show.fitCallbacks", tab: "Training" };
+      const fitParam = {
+        batchSize: 64,
+        epochs: 2000,
+        callbacks: [
+          tfvis.show.fitCallbacks(surface, ["loss", "acc"]),
+          {
+            onEpochEnd: (epoch, logs) => {
+              console.log(
+                "epoch: ",
+                epoch,
+                logs,
+                "RMSE=>",
+                Math.sqrt(logs.loss)
+              );
+            },
+          },
+        ],
+      };
+      (async () => {
+        await model.fit(tftemp, tfsell, fitParam);
+        await model.predict(tftemp).print();
+        await tfvis.show.modelSummary({ name: "요약", tab: "모델요약" }, model);
+        await tfvis.show.layer(
+          { name: "요약", tab: "가중치와 편향" },
+          model.getLayer(undefined, 0)
+        );
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+  </head>
+  <body>
+    <input
+      id="input"
+      type="text"
+      placeholder="변환할 값을 입력하세요."
+      required
+    />
+    <br />
+    <div id="output"></div>
+    <button id="download" onclick="down()">저장된 모델 다운로드</button>
+    <button id="del" onclick="del()">저장된 데이터 삭제</button>
+    <script>
+      const xs = [113, 346, 545, 232, 332, 123];
+      const ys = [385.98, 1248.08, 1984.38, 826.28, 1196.28, 442.98];
+      const tensor_xs = tf.tensor1d(xs);
+      const tensor_ys = tf.tensor1d(ys);
+
+      const x = tf.input({ shape: [1] });
+      const y = tf.layers.dense({ units: 1 }).apply(x);
+      const model = tf.model({ inputs: x, outputs: y });
+      const param = {
+        optimizer: tf.train.adam(),
+        loss: tf.losses.meanSquaredError,
+      };
+      model.compile(param);
+
+      const fitParam = {
+        batchSize: 128,
+        epochs: 5000,
+        callbacks: {
+          onEpochEnd: (epoch, logs) => {
+            console.log("모델 학습중");
+          },
+        },
+      };
+      const button = document.getElementById("download");
+      const div = document.getElementById("output");
+      if (localStorage.getItem("tensorflowjs_models/ex7_test/info") === null) {
+        button.disabled = true;
+        localsave();
+      } else {
+        button.disabled = false;
+      }
+      // 모델 학습 실행
+      async function localsave() {
+        await model.fit(tensor_xs, tensor_ys, fitParam);
+        await model.predict(tensor_ys).print();
+        await model.save("localstorage://ex7_test");
+        await console.log("model이 저장되었습니다.");
+      }
+      // 파일 저장 function 생성
+      function down() {
+        model.save("downloads://ex7_test");
+      }
+
+      // 저장된 모델 삭제
+      function del() {
+        localStorage.removeItem("tensorflowjs_models/ex7_test/model_metadata");
+        localStorage.removeItem("tensorflowjs_models/ex7_test/weight_data");
+        localStorage.removeItem("tensorflowjs_models/ex7_test/model_topology");
+        localStorage.removeItem("tensorflowjs_models/ex7_test/info");
+        localStorage.removeItem("tensorflowjs_models/ex7_test/weight_specs");
+      }
+
+      // 새로운 예측
+      const input = document.getElementById("input");
+      let i_num = "";
+      input.addEventListener("change", (e) => {
+        i_num = Number(e.target.value);
+        pre(i_num);
+      });
+      let kernel, bias, total, model_input;
+      async function pre(input) {
+        div.innerHTML = "변환중입니다.";
+        const in_data = tf.tensor1d([input]);
+        await tf.loadLayersModel("localstorage://ex7_test").then((model) => {
+          console.log("이전모델 로드됨.");
+          model_input = model.predict(in_data);
+          model_input.print();
+        });
+        const result = model_input;
+        await result.array().then((v) => {
+          total = v[0][0];
+          div.innerHTML = total;
+        });
+        await console.log(`입력값이 ${input}일 때 예측한 값은 ${total}입니다.`);
+      }
+    </script>
+  </body>
+</html>

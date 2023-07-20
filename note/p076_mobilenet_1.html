@@ -1,79 +1,82 @@
 <!DOCTYPE html>
 <html lang="ko">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Document</title>
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
-    </head>
-    <body>
-        <h1>이미지 분류 with Mobilenet</h1>
-        <p id="predictions">...인식중</p>
-        <form action="#">
-            <input type="file" id="img" />
-            <button type="submit">업로드</button>
-        </form>
-        <div id="show"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <h1>이미지 분류 with Mobilenet</h1>
+    <p id="predictions">...인식중</p>
+    <form action="/trans" name="send" style="display: none" class="send"></form>
+    <form action="#" class="upload">
+      <input type="file" id="img" />
+      <button type="submit">업로드</button>
+    </form>
+    <div id="show"></div>
 
-        <script>
-            document
-                .querySelector("form")
-                .addEventListener("submit", (event) => {
-                    event.preventDefault();
-                    const img = event.target[0].files[0];
-                    let container = document.getElementById("show");
-                    container.innerHTML = "";
-                    //새로운 이미지를 div 추가
-                    let newImage = document.createElement("img");
-                    newImage.setAttribute("class", "img");
+    <script>
+      document
+        .querySelector("form.upload")
+        .addEventListener("submit", (event) => {
+          event.preventDefault();
+          const img = event.target[0].files[0];
+          let container = document.getElementById("show");
+          container.innerHTML = "";
+          //새로운 이미지를 div 추가
+          let newImage = document.createElement("img");
+          newImage.setAttribute("class", "img");
 
-                    //이미지 source 가져오기
-                    newImage.src = URL.createObjectURL(img);
-                    newImage.id = "showimg";
-                    newImage.style.width = "500px";
-                    newImage.style.objectFit = "contain";
+          //이미지 source 가져오기
+          newImage.src = URL.createObjectURL(img);
+          newImage.id = "showimg";
+          newImage.style.width = "500px";
+          newImage.style.objectFit = "contain";
 
-                    //이미지를 image-show div에 추가
-                    container.appendChild(newImage);
-                    const showimg = document.getElementById("showimg");
-                    mobilenet.load().then((model) => {
-                        model.classify(showimg).then((predictions) => {
-                            const preds =
-                                document.getElementById("predictions");
-                            //   preds.innerHTML = predictions;
-                            console.log(predictions);
-                            send(predictions);
-                            // preds.innerHTML = predictions
-                            //     .map((p) => {
-                            //         return (
-                            //             p["className"] +
-                            //             " " +
-                            //             (p["probability"] * 100).toFixed(2) +
-                            //             "%"
-                            //         );
-                            //     })
-                            //     .join("<br>");
-                        });
-                    });
-                });
-            function send(event) {
-                // <form action="/trans" name='send'></form>
-                const form = document.createElement("form");
-                form.action = "/trans";
-                form.name = "send";
-                form.method = "post";
-                form.class = "send";
-                form.style.display = "none";
-                document.body.appendChild(form);
-                for (let i = 0; i < event.length; i++) {
-                    const input = document.createElement("input");
-                    form.appendChild(input);
-                    input.name = i;
-                    input.innerHTML = event[i].className;
-                }
-                document.send.submit();
-            }
-        </script>
-    </body>
+          //이미지를 image-show div에 추가
+          container.appendChild(newImage);
+          const showimg = document.getElementById("showimg");
+          mobilenet.load().then((model) => {
+            model.classify(showimg).then((predictions) => {
+              const preds = document.getElementById("predictions");
+              //   preds.innerHTML = predictions;
+              console.log(predictions);
+              send(predictions);
+              //   send(predictions).then((data) => {
+              //     console.log(data);
+              //   });
+              // preds.innerHTML = predictions
+              //     .map((p) => {
+              //         return (
+              //             p["className"] +
+              //             " " +
+              //             (p["probability"] * 100).toFixed(2) +
+              //             "%"
+              //         );
+              //     })
+              //     .join("<br>");
+            });
+          });
+        });
+      function send(event) {
+        // <form action="/trans" name='send'></form>
+        const array = ["first", "second", "third"];
+        const form = document.getElementsByClassName("send");
+        for (let i = 0; i < event.length; i++) {
+          const input = document.createElement("input");
+          form[0].appendChild(input);
+          input.name = array[i];
+          input.value = event[i].className;
+          input.innerHTML = String(event[i].className);
+        }
+        form[0].addEventListener("submit", (e) => {
+          e.preventDefault();
+        });
+        document.send.submit();
+      }
+    </script>
+  </body>
 </html>
