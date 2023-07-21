@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script> -->
+  </head>
+  <style>
+    body {
+      position: relative;
+    }
+    #canvas,
+    #video {
+      position: absolute;
+    }
+  </style>
+  <body>
+    <div id="display">
+      <!-- <canvas> 요소: 웹에 그림을 그릴 수 있는 영역 => 얼굴 사각형을 그리기 위해 사용 -->
+      <canvas width="500" height="500" id="canvas"></canvas>
+    </div>
+    <h2 id="msg"></h2>
+    <script>
+      const display = document.getElementById("display");
+      const video = document.createElement("video");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const msg = document.getElementById("msg");
+      display.appendChild(video);
+      video.width = 600;
+      video.height = 500;
+
+      (async () => {
+        // TensorFlow.js의 tf.data.webcam 메서드를 사용하여 웹캠으로부터 데이터를 캡처하는 객체를 생성
+        const cam = await tf.data.webcam(video);
+
+        // 웹캠으로부터 영상을 캡처 => BlazeFace를 사용하여 얼굴을 인식 =>  인식된 얼굴에 대해 사각형을 그리는 역할
+        async function scan() {
+          // cam 객체의 capture 메서드를 호출하여 웹캠으로부터 현재 프레임을 캡처
+          const img = await cam.capture();
+          const blaze = await blazeface.load(); // blazeface 로딩
+          const predictions = await blaze.estimateFaces(img); // 영상안에 사람이 잡히면 캡처 후 정보를 predictiondp 할당
+          console.log("측정인원수: " + predictions.length + "명");
+          msg.innerHTML = "측정인원수: " + predictions.length + "명";
+
+          canvas.height = video.height;
+          canvas.width = video.width;
+
+          // 인식된 얼굴이 있는 경우, 각 얼굴에 대해 반복문을 실행하여 사각형을 그림
+          if (predictions.length) {
+            for (let i = 0; i < predictions.length; i++) {
+              const start = predictions[i].topLeft;
+              const end = predictions[i].bottomRight;
+              const size = [end[0] - start[0], end[1] - start[1]];
+              ctx.strokeStyle = "greenyellow";
+              ctx.lineWidth = 3;
+              // 요소의 2D 컨텍스트를 사용하여 인식된 얼굴에 대한 사각형을 그림
+              // start와 end 변수는 얼굴 사각형의 시작점과 끝점 좌표
+              ctx.strokeRect(start[0], start[1], size[0], size[1]);
+            }
+          }
+          // 다음 애니메이션 프레임이 준비되면 scan 함수를 호출합니다
+          // 이로 인해 웹캠으로부터 지속적으로 캡처하고 얼굴을 인식하여 사각형을 그리는 작업이 반복됩니다.
+          requestAnimationFrame(scan);
+          /* requestAnimationFrame 메소드 */
+          // 웹 브라우저에서 제공하는 메소드로, 웹 애니메이션 및 그래픽 처리에 사용, 일반적으로 자바스크립트로 애니메이션을 구현할 때,
+          // setInterval이나 setTimeout을 사용하여 일정 간격으로 함수를 호출하여 애니메이션 프레임을 업데이트합니다.
+          // 그러나 이러한 방식은 고정된 간격으로 호출되기 때문에 프레임 속도가 일정하지 않을 수 있고,
+          // 브라우저가 백그라운드에 있을 때도 계속해서 함수가 호출되어 성능 저하를 유발합니다.
+        }
+        scan();
+      })();
+    </script>
+  </body>
+</html>
