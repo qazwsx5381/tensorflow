@@ -23,26 +23,30 @@
       document.body.append(video);
       video.width = 500;
       video.height = 500;
-      const main = async () => {
+      (async () => {
         const cam = await tf.data.webcam(video);
-        const img = await cam.capture();
-        const net = await mobilenet.load();
-        const result = await net.classify(img);
-        img.print();
-        tf.dispose(img);
-        res.innerHTML =
-          result[0].className +
-          "<br>" +
-          (result[0].probability * 100).toFixed(2) +
-          "%";
-      };
-      let play = setInterval(main, 5000);
-      pick.addEventListener("click", () => {
-        play = setInterval(main, 5000);
-      });
-      pick2.addEventListener("click", () => {
-        clearInterval(play);
-      });
+        async function main() {
+          const img = await cam.capture();
+          const net = await mobilenet.load();
+          const result = await net.classify(img);
+          img.print();
+          tf.dispose(img);
+          res.innerHTML =
+            result[0].className +
+            "<br>" +
+            (result[0].probability * 100).toFixed(2) +
+            "%";
+          tf.dispose(img);
+          tf.dispose(net);
+        }
+        let play;
+        pick.addEventListener("click", () => {
+          play = setInterval(main, 5000);
+        });
+        pick2.addEventListener("click", () => {
+          clearInterval(play);
+        });
+      })();
     </script>
   </body>
 </html>
