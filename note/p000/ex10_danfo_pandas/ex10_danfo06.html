@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script> -->
+  </head>
+  <body>
+    <script>
+      const arr_data = [
+        ["bval1", 10, 33.33, "test"],
+        ["bval2", 40, 3.66, "test"],
+        ["bval3", 60, 6.58, "train"],
+        ["bval4", 100, 1.12, "test"],
+      ];
+
+      const tf = new dfd.DataFrame(arr_data);
+      tf.print();
+      tf.ctypes.print();
+      tf.head(2).print();
+      tf.tail(2).print();
+
+      const tf2 = tf.sortIndex({ ascending: false });
+      tf2.print()
+    </script>
+  </body>
+</html>

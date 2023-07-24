@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script> -->
+  </head>
+  <body>
+    <script>
+      fson_data = [
+        { A: 0.43432, B: 4.23235, C: -1.2213, D: -1.45898 },
+        { A: 0.53432, B: -0.43235, C: -3.3213, D: -1.55898 },
+        { A: 0.63432, B: -0.53235, C: -1.4213, D: -1.65898 },
+        { A: 0.73432, B: -9.63235, C: 4.6213, D: 4.75898 },
+      ];
+      const tf = new dfd.DataFrame(fson_data);
+      tf.print();
+    </script>
+  </body>
+</html>

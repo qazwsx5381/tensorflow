@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script> -->
+  </head>
+  <body>
+    <script>
+      const dates = new dfd.dateRange({
+        start: "2017-01-01",
+        end: "2022-12-31",
+        period: 6,
+        freq: "Y",
+      });
+      console.log(dates);
+      const obj_data = {
+        A: dates,
+        B: ["bval1", "bval2", "bval3", "bval4", "bval5", "bval6"],
+        C: [10, 20, 30, 40, 50, 60],
+        D: [1.22, 2.56, 5, 8, 9.87, 430],
+        E: ["test", "train", "test", "train", "test", "train"],
+      };
+      const tf = new dfd.DataFrame(obj_data);
+      tf.print();
+      tf.ctypes.print();
+    </script>
+  </body>
+</html>

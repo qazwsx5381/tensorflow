@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+    <style>
+      #plot_div {
+        display: flex;
+        margin: 10px 0;
+        height: 400px;
+        padding: auto;
+        border: 1px solid #ccc;
+      }
+      button,
+      input {
+        margin: 0 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="file" id="up" />
+    <div id="plot_div"></div>
+    <button id="predict">분석</button>
+    <script>
+      const plot = document.getElementById("plot_div");
+      const input = document.getElementById("up");
+      const pre = document.getElementById("predict");
+      input.addEventListener("change", (e) => {
+        // console.log(e.target.files[0]);
+        dfd.readCSV(e.target.files[0]).then((df) => {
+          df.print();
+          df.describe().print();
+          // console.log(df.$dataIncolumnFormat);
+          const dfs = df.$dataIncolumnFormat;
+          // const series = ['TV','Radio','Newspaper','Sales']
+          const series = df.columns;
+          const data_test = [],
+            data_pre = [];
+          // console.log(series);
+          // series1 = dfs[0].map((y) => dfs[3][i]).map((y, x) => ({ x, y }));
+          dfs[3]
+            .map((y) => y)
+            .map((y, x) => {
+              if (data_test.length < 160) {
+                data_test.push({ x: dfs[0][x], y });
+              } else {
+                data_pre.push({ x: dfs[0][x], y });
+              }
+            });
+          const series1 = dfs[3]
+            .map((y) => y)
+            .map((y, x) => ({ x: dfs[0][x], y }));
+          // const series2 = dfs[3]
+          //   .map((y) => y)
+          //   .map((y, x) => ({ x: dfs[1][x], y }));
+          // const series3 = dfs[3]
+          //   .map((y) => y)
+          //   .map((y, x) => ({ x: dfs[2][x], y }));
+          console.log(series1);
+          console.log(data_test);
+          console.log(data_test.map((y) => y.x));
+          console.log(data_pre);
+
+          modelrun(data_test);
+          const data = { values: [series1, data_test, data_pre], series };
+
+          const surface = {
+            name: "Scatterplot",
+            tab: "Charts",
+            drawArea: plot,
+          };
+          pre.addEventListener("click", () => {
+            tfvis.render.scatterplot(surface, data, {
+              xLabel: "total",
+              yLabel: series[3],
+              zoomToFit: "70%",
+            });
+          });
+        });
+      });
+      function modelrun(data) {
+        /* 1. 학습용 텐서 준비 */
+        const x = data.map((y) => y.x);
+        const y = data.map((y) => y.y);
+        const xs = tf.tensor(x);
+        const ys = tf.tensor(y);
+
+        /* 2. 모델만들기 */
+        const xx = tf.input({ shape: [1] }); // 값 넣기
+        const yy = tf.layers
+          .dense({ units: 1, activation: "sigmoid" })
+          .apply(xx);
+        const model = tf.model({ inputs: xx, outputs: yy });
+        const c_param = {
+          optimizer: tf.train.adam(),
+          loss: tf.losses.meanSquaredError,
+        };
+        model.compile(c_param);
+        /* 3. 모델로 훈련 시작 */
+        const f_param = {
+          batchSize: 256,
+          epochs: 1000,
+          callbacks: {
+            onEpochEnd: (e, l) => {
+              console.log("epoch : ", e, l, "RMSE=>", Math.sqrt(l.loss));
+            },
+          },
+        };
+        model.fit(xs, ys, f_param).then(() => {
+          model.predict(xs).print();
+          // console.log(model.predict(xs));
+        });
+      }
+    </script>
+  </body>
+</html>
