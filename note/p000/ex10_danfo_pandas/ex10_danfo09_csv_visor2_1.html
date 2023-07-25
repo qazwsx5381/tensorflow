@@ -38,22 +38,28 @@
           const dfs = df.$dataIncolumnFormat;
           // const series = ['TV','Radio','Newspaper','Sales']
           const series = df.columns;
-          const data_test = [],
-            data_pre = [];
+          // const data_test = [],
+          //   data_pre = [];
           // console.log(series);
           // series1 = dfs[0].map((y) => dfs[3][i]).map((y, x) => ({ x, y }));
-          dfs[3]
-            .map((y) => y)
-            .map((y, x) => {
-              if (data_test.length < 160) {
-                data_test.push({ x: dfs[0][x], y });
-              } else {
-                data_pre.push({ x: dfs[0][x], y });
-              }
-            });
+          // dfs[3]
+          //   .map((y) => y)
+          //   .map((y, x) => {
+          //     if (data_test.length < 160) {
+          //       data_test.push({ x: dfs[0][x], y });
+          //     } else {
+          //       data_pre.push({ x: dfs[0][x], y });
+          //     }
+          //   });
           const series1 = dfs[3]
             .map((y) => y)
             .map((y, x) => ({ x: dfs[0][x], y }));
+          const data_pre = series1.filter((v, i) => {
+            return i % 5 === 0;
+          });
+          const data_test = series1.filter((v, i) => {
+            return i % 5 !== 0;
+          });
           // const series2 = dfs[3]
           //   .map((y) => y)
           //   .map((y, x) => ({ x: dfs[1][x], y }));
@@ -62,7 +68,6 @@
           //   .map((y, x) => ({ x: dfs[2][x], y }));
           console.log(series1);
           console.log(data_test);
-          console.log(data_test.map((y) => y.x));
           console.log(data_pre);
 
           modelrun(data_test);
@@ -83,37 +88,74 @@
         });
       });
       function modelrun(data) {
-        /* 1. 학습용 텐서 준비 */
-        const x = data.map((y) => y.x);
-        const y = data.map((y) => y.y);
-        const xs = tf.tensor(x);
-        const ys = tf.tensor(y);
+        // model = tf.sequential()
+        // /* 1. 학습용 텐서 준비 */
+        // const x = data.map((y) => y.x);
+        // const y = data.map((y) => y.y);
+        // const xs = tf.tensor(x);
+        // const ys = tf.tensor(y);
 
-        /* 2. 모델만들기 */
-        const xx = tf.input({ shape: [1] }); // 값 넣기
-        const yy = tf.layers
-          .dense({ units: 1, activation: "sigmoid" })
-          .apply(xx);
-        const model = tf.model({ inputs: xx, outputs: yy });
-        const c_param = {
-          optimizer: tf.train.adam(),
-          loss: tf.losses.meanSquaredError,
+        // /* 2. 모델만들기 */
+        // const xx = tf.input({ shape: [1] }); // 값 넣기
+        // const yy = tf.layers
+        //   .dense({ units: 1, activation: "sigmoid" })
+        //   .apply(xx);
+        // const model = tf.model({ inputs: xx, outputs: yy });
+        // const c_param = {
+        //   optimizer: tf.train.adam(),
+        //   loss: tf.losses.meanSquaredError,
+        // };
+        // model.compile(c_param);
+        // /* 3. 모델로 훈련 시작 */
+        // const f_param = {
+        //   batchSize: 256,
+        //   epochs: 1000,
+        //   callbacks: {
+        //     onEpochEnd: (e, l) => {
+        //       console.log("epoch : ", e, l, "RMSE=>", Math.sqrt(l.loss));
+        //     },
+        //   },
+        // };
+        // model.fit(xs, ys, f_param).then(() => {
+        //   model.predict(xs).print();
+        //   // console.log(model.predict(xs));
+        // });
+        const shapeV = [160, 1];
+        const trainTensor = {
+          xs: tf.tensor2d(
+            data.map((v) => v.x),
+            shapeV
+          ),
+          ys: tf.tensor2d(
+            data.map((v) => v.y),
+            shapeV
+          ),
         };
-        model.compile(c_param);
-        /* 3. 모델로 훈련 시작 */
-        const f_param = {
-          batchSize: 256,
-          epochs: 1000,
-          callbacks: {
-            onEpochEnd: (e, l) => {
-              console.log("epoch : ", e, l, "RMSE=>", Math.sqrt(l.loss));
+        const model = tf.sequential();
+        model.add(tf.layers.dense({ inputShape: [1], units: 1 }));
+        model.compile({ optimizer: "sgd", loss: "meanAbsoluteError" });
+
+        // 모델훈련
+        const surface = { name: "show.fitCallbacks", tab: "Training" };
+        model.fit(trainTensor.xs, trainTensor.ys, {
+          epochs: 200,
+          callbacks: [
+            tfvis.show.fitCallbacks(surface, ["loss", "acc"]),
+            {
+              onEpochEnd: (e, l) => {
+                console.log("epoch:", e, l);
+              },
             },
-          },
-        };
-        model.fit(xs, ys, f_param).then(() => {
-          model.predict(xs).print();
-          // console.log(model.predict(xs));
+          ],
         });
+        // .then(() => {
+        //   // 모델평가
+        //   // model.evaluate(trainTensor.xs, trainTensor.ys).print(1);
+        // });
+        // .then(() => {
+        //   // 모델평가
+        //   model.predict(tf.tensor2d([[5]])).print(1);
+        // });
       }
     </script>
   </body>
