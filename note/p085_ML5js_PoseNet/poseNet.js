@@ -2,8 +2,8 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
 const result_label = document.getElementById("result_label");
-const button = document.getElementById("btn");
 const h1 = document.getElementById("content");
+const h2 = document.getElementById("timer");
 
 navigator.mediaDevices
   .getUserMedia({ video: true, audio: false })
@@ -51,13 +51,12 @@ posenet.load().then((model) => {
       }
     });
   }
-  setInterval(() => {
+
+  let timerOn = setInterval(() => {
     timerCap();
+    timer();
   }, 5000);
 
-  button.addEventListener("click", () => {
-    timerCap();
-  });
   function predict() {
     model.estimateSinglePose(video).then((pose) => {
       canvas.width = video.width;
@@ -68,6 +67,22 @@ posenet.load().then((model) => {
     requestAnimationFrame(predict);
   }
 });
+
+function timer() {
+  h2.innerHTML = "5초 남았습니다.";
+  setTimeout(() => {
+    h2.innerHTML = "4초 남았습니다.";
+  }, 1000);
+  setTimeout(() => {
+    h2.innerHTML = "3초 남았습니다.";
+  }, 2000);
+  setTimeout(() => {
+    h2.innerHTML = "2초 남았습니다.";
+  }, 3000);
+  setTimeout(() => {
+    h2.innerHTML = "1초 남았습니다.";
+  }, 4000);
+}
 
 // 기본 예시
 const color = "yellowgreen";
