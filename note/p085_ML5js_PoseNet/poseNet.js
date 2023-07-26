@@ -52,7 +52,7 @@ posenet.load().then((model) => {
     });
   }
 
-  let timerOn = setInterval(() => {
+  setInterval(() => {
     timerCap();
     timer();
   }, 5000);
