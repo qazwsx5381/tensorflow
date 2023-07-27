@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+  </head>
+  <body>
+    <div>
+      <input type="file" onchange="readExcel()" />
+      <button id="learn" disabled>학습</button>
+      <button id="save">저장</button>
+    </div>
+    <div>
+      <span>아버지의 키는?</span><br />
+      <input type="number" id="input_text" disabled />
+      <h1 id="predict_result"></h1>
+    </div>
+    <div id="show"></div>
+    <div id="result_show"></div>
+    <script>
+      const learn = document.getElementById("learn");
+      const show = document.getElementById("show");
+      const result = document.getElementById("result_show");
+      const save = document.getElementById("save");
+      const input = document.getElementById("input_text");
+      const pred = document.getElementById("predict");
+      const pre_result = document.getElementById("predict_result");
+      let train, test;
+      function readExcel() {
+        // if (tf.loadLayersModel("localstorage://data")) {
+        //   save.disabled = true;
+        // } else {
+        //   save.disabled = false;
+        // }
+        let input = event.target;
+        let reader = new FileReader();
+        reader.onload = function () {
+          //   learn.disabled = true;
+          let data = reader.result;
+          let workBook = XLSX.read(data, { type: "binary" });
+          train = JSON.parse(
+            JSON.stringify(XLSX.utils.sheet_to_json(workBook.Sheets["train"]))
+          );
+          test = JSON.parse(
+            JSON.stringify(XLSX.utils.sheet_to_json(workBook.Sheets["test"]))
+          );
+          const test_x = test.map((v) => {
+            return v.Father;
+          });
+          const test_y = test.map((v) => {
+            return v.Son;
+          });
+          const train_x = train.map((v) => {
+            return v.Father;
+          });
+          const train_y = train.map((v) => {
+            return v.Son;
+          });
+          const data_test = test.map((v, i) => {
+            return { x: v.Father, y: v.Son };
+          });
+          const data_train = train.map((v, i) => {
+            return { x: v.Father, y: v.Son };
+          });
+          const series_value1 = ["test", "training"];
+          tfvis.render.scatterplot(
+            {
+              name: "Key_infomation",
+              tab: "Charts",
+              drawArea: show,
+            },
+            {
+              values: [data_test, data_train],
+              series: series_value1,
+            },
+            {
+              xLabel: "Father",
+              yLabel: "Son",
+              xAxisDomain: [145, 195],
+              yAxisDomain: [140, 200],
+            }
+          );
+          //   console.log(test);
+          //   console.log(test_x);
+          //   console.log(test_y);
+          //   console.log(train);
+          //   console.log(train_x);
+          //   console.log(train_y);
+          learn.disabled = false;
+          learn.addEventListener("click", async () => {
+            learn.disabled = true;
+            await readyData(data_test, train_x, train_y, test_x);
+          });
+          save.addEventListener("click", () => {
+            savedata();
+          });
+        };
+        reader.readAsBinaryString(input.files[0]);
+      }
+      function readyData(data, x_data, y_data, z_data) {
+        const xs = tf.tensor1d(x_data);
+        const ys = tf.tensor1d(y_data);
+        const zs = tf.tensor1d(z_data);
+
+        const model = tf.sequential();
+        model.add(
+          tf.layers.dense({
+            units: 1,
+            inputShape: [1],
+          })
+        );
+        const param = {
+          optimizer: tf.train.adam(),
+          loss: tf.losses.meanSquaredError,
+        };
+        model.compile(param);
+
+        const fitParam = {
+          batchSize: 128,
+          epochs: 300,
+          callbacks: [
+            {
+              onEpochEnd: (epoch, logs) => {
+                console.log(
+                  "epoch: ",
+                  epoch,
+                  logs,
+                  "RMSE=>",
+                  Math.sqrt(logs.loss)
+                );
+              },
+            },
+          ],
+        };
+        (async () => {
+          await model.fit(xs, ys, fitParam);
+          await model.predict(zs).print();
+          let result_data = await model.predict(zs).data();
+          const result2 = Array.from(result_data).map((v, i) => {
+            return { x: z_data[i], y: v }; // x: 20%의 test TV, y: 그 예측값
+          });
+          tfvis.render.scatterplot(
+            {
+              name: "Key_infomation",
+              tab: "Charts",
+              drawArea: result,
+            },
+            {
+              values: [data, result2],
+              series: ["test", "predict"],
+            },
+            {
+              xLabel: "Father",
+              yLabel: "Son",
+              xAxisDomain: [145, 195],
+              yAxisDomain: [140, 200],
+            }
+          );
+
+          input.disabled = false;
+          input.addEventListener("change", (e) => {
+            console.log(e);
+            const value = e.target.value;
+            pre(Number(value));
+          });
+        })();
+        let total;
+        async function pre(x) {
+          const result = model.predict(tf.tensor1d([x]));
+          await result.array().then((v) => {
+            total = v[0][0];
+          });
+          pre_result.innerHTML = `아버지의 키가 ${x}일 때 예상된 아들의 키는 ${total.toFixed(
+            2
+          )}cm 입니다.`;
+        }
+        async function savedata() {
+          await model.save("localstorage://data");
+          await console.log("model이 data라는 이름으로 저장되었습니다.");
+        }
+      }
+    </script>
+  </body>
+</html>

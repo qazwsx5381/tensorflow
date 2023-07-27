@@ -24,16 +24,7 @@ export const IRIS_NUM_CLASSES = IRIS_CLASSES.length;
 // let IRIS_DATA = [
 //   // 꽃잎 길이, 꽃잎 너비, 꽃받침 길이, 꽃받침 너비, 클래스(0~2)
 // ];
-function load() {
-  return dfd.readCSV("./IRIS.csv").then((csv) => {
-    return csv.$data.map((v) => {
-      if (v[4] === IRIS_CLASSES[0]) v[4] = 0;
-      if (v[4] === IRIS_CLASSES[1]) v[4] = 1;
-      if (v[4] === IRIS_CLASSES[2]) v[4] = 2;
-      return v;
-    });
-  });
-}
+
 // dfd.readCSV("./IRIS.csv").then((csv) => {
 //   const data = csv.$data;
 //   const irisData = data.map((v) => {
@@ -42,6 +33,7 @@ function load() {
 //     if (v[4] === IRIS_CLASSES[2]) v[4] = 2;
 //     return v;
 //   });
+//   IRIS_DATA = [...irisData];
 // });
 // console.log(IRIS_DATA);
 // /* 다음 아이리스 데이터를 넣으시오. */
@@ -246,9 +238,7 @@ function convertToTensors(data, targets, testSplit) {
   return [xTrain, yTrain, xTest, yTest];
 }
 // =================================================================
-export async function getIrisData(testSplit) {
-  const IRIS_DATA = await load();
-  console.log(IRIS_DATA);
+export function getIrisData(testSplit) {
   return tf.tidy(() => {
     const dataByClass = [];
     const targetsByClass = [];
