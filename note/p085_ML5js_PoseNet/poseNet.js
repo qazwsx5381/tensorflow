@@ -23,18 +23,6 @@ posenet.load().then((model) => {
       console.log(pose.keypoints);
       const point = pose.keypoints;
       if (
-        point[5].position.y > point[7].position.y &&
-        point[6].position.y > point[8].position.y &&
-        point[7].position.y > point[9].position.y &&
-        point[8].position.y > point[10].position.y &&
-        point[7].position.x > point[5].position.x &&
-        point[8].position.x < point[6].position.x &&
-        point[7].position.x > point[9].position.x &&
-        point[8].position.x < point[10].position.x
-      ) {
-        console.log("양손으로 동그라미를 그렸습니다.");
-        h1.innerHTML = "양손으로 동그라미를 그렸습니다.";
-      } else if (
         point[5].position.y > point[9].position.y &&
         point[6].position.y > point[10].position.y
       ) {

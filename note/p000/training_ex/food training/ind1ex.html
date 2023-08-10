@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>배열 데이터 받기 예제</title>
+</head>
+<body>
+  <h1>배열 데이터 받기 예제</h1>
+  <button onclick="getData()">데이터 받기</button>
+  <ul id="dataList"></ul>
+
+  <script>
+    function getData() {
+      const xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          displayData(data);
+        }
+      };
+      xhr.open('GET', 'http://localhost:3000/api/data');
+      xhr.send();
+    }
+
+    function displayData(data) {
+      const dataList = document.getElementById('dataList');
+      dataList.innerHTML = '';
+
+      data.forEach(item => {
+        const listItem = document.createElement('li');
+        listItem.textContent = item;
+        dataList.appendChild(listItem);
+      });
+    }
+  </script>
+</body>
+</html>
