@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-mosaic@0.15.3/jquery.mosaic.min.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.min.js"
+      integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+      crossorigin="anonymous"
+    ></script>
     <!-- <script src="./webcam.js" type="module"></script> -->
   </head>
   <body
@@ -23,6 +29,11 @@
     <canvas
       id="canvas"
       class="canvas"
+      style="position: fixed; top: 0; left: 0; z-index: 10"
+    ></canvas>
+    <canvas
+      id="mosaic"
+      class="mosaic"
       style="position: fixed; top: 0; left: 0; z-index: 10"
     ></canvas>
     <div id="log" style="overflow-y: scroll; height: 16.5rem"></div>
@@ -60,97 +71,40 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         // draw title
         ctx.font = 'small-caps 20px "Segoe UI"'
-        ctx.fillStyle = 'white'
+        // ctx.fillStyle = 'white'
         ctx.fillText(`FPS: ${fps}`, 10, 25)
         for (const person of data) {
           // draw box around each face
-          ctx.lineWidth = 10
-          ctx.strokeStyle = 'deepskyblue'
-          ctx.fillStyle = 'blur'
-          ctx.globalAlpha = 0.6
-          ctx.beginPath()
+          // ctx.globalAlpha = 0.5
+          // ctx.beginPath()
           // ctx.rect(
           //   person.detection.box.x,
           //   person.detection.box.y,
           //   person.detection.box.width,
           //   person.detection.box.height
           // )
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-          const imageData = ctx.getImageData(
-            person.detection.box.x,
-            person.detection.box.y,
-            person.detection.box.width,
-            person.detection.box.height
-          )
           const blockSize = 50
-          for (
-            let y = person.detection.box.y;
-            y < person.detection.box.y + person.detection.box.height;
-            y += blockSize
-          ) {
-            for (
-              let x = person.detection.box.x;
-              x < person.detection.box.x + person.detection.box.width;
-              x += blockSize
-            ) {
-              const avgColor = await getAverageColor(imageData, x, y, blockSize)
-              ctx.fillStyle = `rgb(${avgColor.r},${avgColor.g},${avgColor.b})`
-              ctx.fillRect(x, y, blockSize, blockSize)
-            }
-          }
-          // const avgColor = calculateAverageColor(imageData)
-          // ctx.fillStyle = `rgb(${avgColor.r},${avgColor.g},${avgColor.b})`
-          // // ctx.fillStyle = 'white'
-          // ctx.fillRect(
-          //   person.detection.box.x,
-          //   person.detection.box.y,
-          //   person.detection.box.width,
-          //   person.detection.box.height
+          ctx.fillRect(
+            person.detection.box.x - blockSize,
+            person.detection.box.y - blockSize,
+            person.detection.box.width + blockSize * 2,
+            person.detection.box.height + blockSize * 2
+          )
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
+          ctx.filter = 'blur(1.5rem)'
+          // ctx.drawImage(
+          //   person.detection.box.x - blockSize,
+          //   person.detection.box.y - blockSize,
+          //   person.detection.box.width + blockSize * 2,
+          //   person.detection.box.height + blockSize * 2
           // )
-          // ctx.fill()
+          // ctx.filter = 'none'
         }
       } catch (error) {
         console.error('에러발생')
       }
     }
 
-    async function getAverageColor(image, startX, startY, blockSize) {
-      let r = 0,
-        g = 0,
-        b = 0,
-        pixelCount = 0
-      for (let y = 0; y < blockSize; y++) {
-        for (let x = 0; x < blockSize; x++) {
-          const index = (x + y * blockSize) * 4
-          r += image.data[index]
-          g += image.data[index + 1]
-          b += image.data[index + 2]
-          pixelCount++
-        }
-      }
-
-      r = Math.floor(r / pixelCount)
-      g = Math.floor(g / pixelCount)
-      b = Math.floor(b / pixelCount)
-
-      return { r, g, b }
-    }
-
-    // function calculateAverageColor(imageData) {
-    //   let r = 0,
-    //     g = 0,
-    //     b = 0
-    //   for (let i = 0; i < imageData.data.length; i += 4) {
-    //     r += imageData.data[i]
-    //     g += imageData.data[i + 1]
-    //     b += imageData.data[i + 2]
-    //   }
-    //   const pixelCount = imageData.data.length / 4
-    //   r = Math.floor(r / pixelCount)
-    //   g = Math.floor(g / pixelCount)
-    //   b = Math.floor(b / pixelCount)
-    //   return { r, g, b }
-    // }
     async function detectVideo(video, canvas) {
       if (!video || video.paused) return false
       const t0 = performance.now()
