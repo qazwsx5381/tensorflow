@@ -6,8 +6,9 @@
     <title>Document</title>
     <script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script> -->
     <style>
-      [id$="_div"] {
+      [id$='_div'] {
         display: flex;
         margin: 10px 0;
         height: 400px;
@@ -26,121 +27,125 @@
     <button id="predict">분석</button>
     <div id="pre_div"></div>
     <script>
-      const tf = dfd.tensorflow;
-      const plot = document.getElementById("plot_div");
-      const input = document.getElementById("up");
-      const pre = document.getElementById("predict");
-      const pre_div = document.getElementById("pre_div");
-      let result = "",
-        total = "";
-      input.addEventListener("change", (e) => {
+      const tf = dfd.tensorflow
+      const plot = document.getElementById('plot_div')
+      const input = document.getElementById('up')
+      const pre = document.getElementById('predict')
+      const pre_div = document.getElementById('pre_div')
+      let result = '',
+        total = ''
+      input.addEventListener('change', (e) => {
         // console.log(e.target.files[0]);
         dfd.readCSV(e.target.files[0]).then((df) => {
-          df.print();
-          df.describe().print();
+          df.print()
+          df.describe().print()
           // console.log(df.$dataIncolumnFormat);
-          const dfs = df.$dataIncolumnFormat;
+          const dfs = df.$dataIncolumnFormat
           // const series = ['TV','Radio','Newspaper','Sales']
-          const series = df.columns;
+          const series = df.columns
           // console.log(series);
-          const series1 = dfs[0].map((y) => y).map((y, x) => ({ x, y }));
+          const series1 = dfs[0].map((y) => y).map((y, x) => ({ x, y }))
           const data_pre = dfs.map((y) => {
             return y.filter((v, i) => {
-              return i % 5 === 0;
-            });
-          });
+              return i % 5 === 0
+            })
+          })
           const data_test = dfs.map((y) => {
             return y.filter((v, i) => {
-              return i % 5 !== 0;
-            });
-          });
+              return i % 5 !== 0
+            })
+          })
           const trainTg = dfs[3].filter((v, i) => {
-            return i % 5 === 0;
-          });
+            return i % 5 === 0
+          })
           const testTg = dfs[3].filter((v, i) => {
-            return i % 5 !== 0;
-          });
-          const series2 = dfs[3].map((y, x) => ({ x: dfs[0][x], y }));
+            return i % 5 !== 0
+          })
+          const series2 = dfs[3].map((y, x) => ({ x: dfs[0][x], y }))
           // const series3 = dfs[3]
           //   .map((y) => y)
           //   .map((y, x) => ({ x: dfs[2][x], y }));
-          console.log(series1);
-          console.log(data_pre);
-          console.log(data_test);
-          console.log(trainTg);
-          console.log(testTg);
+          console.log(series1)
+          console.log(data_pre)
+          console.log(data_test)
+          console.log(trainTg)
+          console.log(testTg)
 
           const data_test2 = data_test[0].map((v, i) => {
-            return { x: v, y: testTg[i] };
-          });
+            return { x: v, y: testTg[i] }
+          })
           const data_pre2 = data_pre[0].map((v, i) => {
-            return { x: v, y: trainTg[i] };
-          });
-          console.log(data_test2);
-          const model = tf.sequential();
-          model.add(tf.layers.dense({ inputShape: [1], units: 1 }));
+            return { x: v, y: trainTg[i] }
+          })
+          console.log(data_test2)
+          const model = tf.sequential()
+          model.add(tf.layers.dense({ inputShape: [1], units: 1 }))
           model.compile({
-            loss: "meanSquaredError",
-            optimizer: "adam",
-            lr: 0.1,
-          });
+            loss: 'meanSquaredError',
+            optimizer: 'adam',
+            lr: 0.1
+          })
           // Train for 5 epochs with batch size of 32.
+          const visData = { name: 'show.fitCallbacks', tab: 'Training' }
           const firparam = {
-            batchSize: 64,
-            epochs: 1000,
-            callbacks: {
-              onEpochEnd: (e, l) => {
-                console.log("epoch:", e, l, "RMSE=>", Math.sqrt(l.loss));
-              },
-            },
-          };
-          const series_value = ["test TV", "train TV"];
+            batchSize: 128,
+            epochs: 500,
+            callbacks: [
+              tfvis.show.fitCallbacks(visData, ['loss', 'acc']),
+              {
+                onEpochEnd: (e, l) => {
+                  console.log('epoch:', e, l, 'RMSE=>', Math.sqrt(l.loss))
+                }
+              }
+            ]
+          }
+          const series_value = ['test TV', 'train TV']
           const data = {
             values: [data_pre2, data_test2],
-            series: series_value,
-          };
+            series: series_value
+          }
 
           const surface = {
-            name: "Scatterplot",
-            tab: "Charts",
-            drawArea: plot,
-          };
+            name: 'Scatterplot',
+            tab: 'Charts',
+            drawArea: plot
+          }
           tfvis.render.scatterplot(surface, data, {
-            xLabel: "total",
-            yLabel: series[3],
-          });
-          pre.addEventListener("click", async () => {
-            console.log(df.shape);
+            xLabel: 'total',
+            yLabel: series[3]
+          })
+          pre.addEventListener('click', async () => {
+            console.log(df.shape)
             await model.fit(
               tf.tensor(data_test[0]),
               tf.tensor(testTg),
               firparam
-            );
-            const series_value1 = ["test TV", "predict TV"];
-            let result = await model.predict(tf.tensor(data_pre[0])).data();
-            console.log(result);
+            )
+            const series_value1 = ['test TV', 'predict TV']
+            let result = await model.predict(tf.tensor(data_pre[0])).data()
+            console.log(result)
             const result2 = Array.from(result).map((v, i) => {
-              return { x: data_pre[0][i], y: v }; // x: 20%의 test TV, y: 그 예측값
-            });
-            console.log(result2);
+              return { x: data_pre[0][i], y: v } // x: 20%의 test TV, y: 그 예측값
+            })
+            console.log(result2)
             tfvis.render.scatterplot(
               {
-                name: "Key_infomation",
-                tab: "Charts",
-                drawArea: pre_div,
+                name: 'Key_infomation',
+                tab: 'Charts',
+                drawArea: pre_div
               },
               {
                 values: [data_pre2, result2],
-                series: series_value1,
+                series: series_value1
               },
               {
-                xLabel: "tv",
-                yLabel: series[3],
+                xLabel: 'tv',
+                yLabel: series[3]
               }
-            );
-          });
-        });
-      });
+            )
+          })
+        })
+      })
     </script>
   </body>
 </html>
